@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/umany-global/sdk-js-template/issues"
   },
-  "homepage": "https://github.com/umany-global/sdk-js-template#readme"
+  "homepage": "https://github.com/umany-global/sdk-js-template#readme",
+  "dependencies": {
+    "axios": "^0.21.4",
+    "browserfy": "^1.0.0"
+  }
 }
