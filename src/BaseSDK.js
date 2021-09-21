@@ -1,8 +1,7 @@
-const 	axios			= require('axios'),
-		{ AuthSDK } 	= require('auth-sdk-js');
+const { AuthSDK } = require('auth-sdk-js');
 
 
-module.exports = class BaseClient {
+module.exports = class BaseSDK {
 
 	auth;
 	#config:
@@ -11,7 +10,37 @@ module.exports = class BaseClient {
 	constructor ( config ) {
 
 		this.#config = config;
-		this.auth 	 = new AuthSDK( config );
+		this.auth	 = new AuthSDK( config );
+	}
+
+
+	attach ( ServiceClient ) {
+
+		switch ( ServiceClient.getSDKPath() ) {
+
+			case 'auth':
+			case '#config':
+			case 'attach':
+			case 'init':
+
+				throw new Error(
+					'SDK path "'+ServiceClient.getSDKPath()+'" is already taken, try another.'
+				);
+
+			default:
+
+				Object.defineProperty( 
+					this, 
+					ServiceClient.getSDKPath(), 
+					{
+						value: ServiceClient,
+						writable: false
+					}
+				);
+
+				break;
+		}
+
 	}
 
 
@@ -25,4 +54,5 @@ module.exports = class BaseClient {
 
 		return this.auth.init();
 	}
+
 }
