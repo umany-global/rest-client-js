@@ -1,46 +1,78 @@
-const { AuthSDK } = require('auth-sdk-js');
-
+const 	ServiceClient 	= require('./ServiceClient'),
+		AuthSDK 		= require('auth-sdk-js');
 
 module.exports = class BaseSDK {
 
-	auth;
 	#config:
 
 
 	constructor ( config ) {
 
+		if ( 
+			config.auth 
+			&& !( config.auth instanceof AuthSDK )
+		)
+		{
+			throw new Error('auth param must be an instance of AuthSDK from the following package: auth-sdk-js');
+		}
+		else if ( !config.services ) {
+
+			throw new Error( 'Param required: services' );
+		}
+		else if ( typeof config.services !== 'array' ) {
+
+			throw new Error( 'services param must be an array' );
+		}
+
+		config.services.forEach( service => {
+
+			this.attach( service );
+		});
+
 		this.#config = config;
-		this.auth	 = new AuthSDK( config );
 	}
 
 
-	attach ( ServiceClient ) {
+	attach ( serviceClient ) {
 
-		switch ( ServiceClient.getSDKPath() ) {
+		if ( serviceClient instanceof ServiceClient ) {
 
-			case 'auth':
-			case '#config':
-			case 'attach':
-			case 'init':
+			switch ( serviceClient.getSDKPath() ) {
 
-				throw new Error(
-					'SDK path "'+ServiceClient.getSDKPath()+'" is already taken, try another.'
-				);
+				case 'auth':
+				case '#config':
+				case 'attach':
+				case 'init':
 
-			default:
+					throw new Error(
+						'SDK path "'+serviceClient.getSDKPath()+'" is already taken, try another.'
+					);
 
-				Object.defineProperty( 
-					this, 
-					ServiceClient.getSDKPath(), 
-					{
-						value: ServiceClient,
-						writable: false
-					}
-				);
+				default:
 
-				break;
+					Object.defineProperty( 
+						this, 
+						serviceClient.getSDKPath(), 
+						{
+							value: serviceClient,
+							writable: false
+						}
+					);
+
+					break;
+			}
+		}
+		else {
+
+			throw new Error('param must be an instance of ServiceClient');
 		}
 
+	}
+
+
+	get auth ( ) {
+
+		return this.#config.auth;
 	}
 
 
@@ -52,7 +84,18 @@ module.exports = class BaseSDK {
 
 	init ( ) {
 
-		return this.auth.init();
+		if ( this.auth ) {
+
+			return this.auth.init();
+		}
+		else {
+
+			return new Promise( ( resolve, reject ) => {
+
+				resolve();
+			});
+		}
+		
 	}
 
 }

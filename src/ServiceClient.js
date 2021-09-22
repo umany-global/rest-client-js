@@ -1,4 +1,5 @@
-const 	axios = require('axios'),
+const 	axios 	= require('axios'),
+        AuthSDK = require('auth-sdk-js'),
 		{
 			UnauthorizedException,
 			NotFoundException,
@@ -16,28 +17,35 @@ module.exports = class ServiceClient {
 
 	constructor ( config ) {
 
-		if ( !this.#config.baseURL ) {
+		if ( !config.baseURL ) {
 
 			throw new Error('Param required: baseURL');
 		}
-		else if ( typeof this.#config.baseURL === 'string' ) {
+		else if ( typeof config.baseURL !== 'string' ) {
 
 			throw new Error('baseURL param must be a string');
 		}
-		if ( !this.#config.SDKPath ) {
+		if ( !config.SDKPath ) {
 
 			throw new Error('Param required: SDKPath');
 		}
-		else if ( typeof this.#config.SDKPath === 'string' ) {
+		else if ( typeof config.SDKPath !== 'string' ) {
 
 			throw new Error('SDKPath param must be a string');
 		}
 		else if ( 
-			this.#config.trackEvent
-			&& typeof this.#config.trackEvent !== 'function' 
+			config.trackEvent
+			&& typeof config.trackEvent !== 'function' 
 		) 
 		{
 			throw new Error('trackEvent param must be a function');
+		}
+		else if ( 
+			config.auth 
+			&& !( config.auth instanceof AuthSDK )
+		)
+		{
+			throw new Error('auth param must be an instance of AuthSDK from the following package: auth-sdk-js');
 		}
 
 		this.#config = config;
@@ -190,7 +198,7 @@ module.exports = class ServiceClient {
 				}
 				else {
 
-					return params;
+					reject( new Error('Config param required: auth') );
 				}
 			}
 		});
