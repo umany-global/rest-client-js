@@ -171,9 +171,13 @@ module.exports = class ServiceClient {
 
 			if ( params.public ) {
 
+				delete params.public;
+
 				return params;
 			}
 			else {
+
+				delete params.public;
 
 				if ( this.#config.auth ) {
 
@@ -197,10 +201,13 @@ module.exports = class ServiceClient {
 
 		return this.#prepare( params => {
 
+			let eventId = params.eventID;
+			delete params.eventID;
+
 			return axios( params ).then( response => {
 
 				this.#trackEvent(
-					params.eventID,
+					eventId,
 					response.data,
 				);
 
