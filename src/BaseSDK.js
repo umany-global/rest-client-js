@@ -26,23 +26,23 @@ module.exports = class BaseSDK {
 
 		config.services.forEach( service => {
 
-			this.attach( service );
+			this.#attach( service );
 		});
 
 		this.#config = config;
 	}
 
 
-	attach ( serviceClient ) {
+	#attach ( serviceClient ) {
 
 		if ( serviceClient instanceof ServiceClient ) {
 
 			switch ( serviceClient.getSDKPath() ) {
 
 				case 'auth':
-				case '#config':
-				case 'attach':
 				case 'init':
+				case '#config':
+				case '#attach':
 
 					throw new Error(
 						'SDK path "'+serviceClient.getSDKPath()+'" is already taken, try another.'
