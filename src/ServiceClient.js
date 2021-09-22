@@ -32,44 +32,15 @@ module.exports = class ServiceClient {
 
 			throw new Error('SDKPath param must be a string');
 		}
+		else if ( 
+			this.#config.trackEvent
+			&& typeof this.#config.trackEvent !== 'function' 
+		) 
+		{
+			throw new Error('trackEvent param must be a function');
+		}
 
 		this.#config = config;
-	}
-
-
-	#request ( params ) {
-
-		return new Promise ( ( resolve, reject ) => {
-
-			if ( !params.headers ) {
-
-				params.headers = {};
-			}
-
-			params.baseURL: this.#config.baseURL;
-			params.responseType: 'json';
-			params.responseEncoding: 'utf8';		
-			params.headers['Content-Type'] = 'application/json';
-
-			if ( params.authToken ) {
-
-				params.headers['Authorization'] = 'Bearer '+params.authToken;
-			}
-
-			axios( params ).then( response => {
-
-				resolve( response.data );
-
-				this.#trackEvent(
-					params.eventID,
-					response.data,
-				);
-
-			}).catch( error => {
-
-				reject ( this.#handleError );
-			});			
-		});
 	}
 
 
@@ -82,6 +53,7 @@ module.exports = class ServiceClient {
 			params: params.query,
 			data: params.data,
 			eventID: params.eventID,
+			public: params.public,
 		});
 	}
 
@@ -95,6 +67,7 @@ module.exports = class ServiceClient {
 			params: params.query,
 			maxContentLength: params.maxResponseSize ?? 2000,
 			eventID: params.eventID,
+			public: params.public,
 		});
 	}
 
@@ -108,6 +81,7 @@ module.exports = class ServiceClient {
 			params: params.query,
 			data: params.data,
 			eventID: params.eventID,
+			public: params.public,
 		});
 	}
 
@@ -119,6 +93,7 @@ module.exports = class ServiceClient {
 			method: 'delete',
 			headers: params.headers,
 			eventID: params.eventID,
+			public: params.public,
 		});
 	}
 
@@ -133,6 +108,7 @@ module.exports = class ServiceClient {
 			data: params.data,
 			maxContentLength: params.maxResponseSize ?? 2000,
 			eventID: params.eventID,
+			public: params.public,
 		});
 	}
 
@@ -179,11 +155,66 @@ module.exports = class ServiceClient {
 	}
 
 
-	#trackEvent ( id, eventData ) {
+	#prepare ( params ) {
+
+		return new Promise ( ( resolve, reject ) => {
+
+			if ( !params.headers ) {
+
+				params.headers = {};
+			}
+
+			params.baseURL: this.#config.baseURL;
+			params.responseType: 'json';
+			params.responseEncoding: 'utf8';		
+			params.headers['Content-Type'] = 'application/json';
+
+			if ( params.public ) {
+
+				return params;
+			}
+			else {
+
+				if ( this.#config.auth ) {
+
+					return this.#config.auth.getToken().then( token => {
+
+						params.headers['Authorization'] = 'Bearer ' + token;
+
+						return params;
+					});
+				}
+				else {
+
+					return params;
+				}
+			}
+		});
+	}
+
+
+	#request ( params ) {
+
+		return this.#prepare( params => {
+
+			return axios( params ).then( response => {
+
+				this.#trackEvent(
+					params.eventID,
+					response.data,
+				);
+
+				return response.data;
+			});			
+		});
+	}
+
+
+	#trackEvent ( id, eventData = null ) {
 
 		if ( id && this.#config.trackEvent ) {
 
-			this.#config.trackEvent( id, eventData );
+			this.#config.trackEvent( id, eventData ?? {} );
 		}
 	}
 
