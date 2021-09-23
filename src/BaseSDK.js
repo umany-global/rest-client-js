@@ -1,13 +1,13 @@
 const 	axios 	= require('axios'),
-        AuthSDK = require('auth-sdk-js'),
-		{
-			UnauthorizedException,
-			NotFoundException,
-			ForbiddenException,
-			ValidationError,
-			ServiceUnavailable,
-			UnderMaintenanceException,
-		} = require('error-handler-node');
+        AuthSDK = require('@umany/auth-sdk-js'),
+	{
+		UnauthorizedException,
+		NotFoundException,
+		ForbiddenException,
+		ValidationError,
+		ServiceUnavailable,
+		UnderMaintenanceException,
+	} = require('@umany/error-handler-node');
 
 
 module.exports = class BaseSDK {

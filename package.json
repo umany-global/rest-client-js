@@ -18,6 +18,8 @@
   "homepage": "https://github.com/umany-global/service-sdk-js#readme",
   "dependencies": {
     "axios": "^0.21.4",
-    "browserfy": "^1.0.0"
+    "browserfy": "^1.0.0",
+    "@umany/auth-sdk-js": "file:../auth-sdk-js",
+    "@umany/error-handler-node": "file:../error-handler-node"
   }
 }

@@ -1,5 +1,5 @@
-const 	BaseSDK 		= require('./BaseSDK'),
-		ServiceClient 	= require('./ServiceClient'),
+const 	BaseSDK = require('./BaseSDK'),
+		AuthSDK = require('@umany/auth-sdk-js'),
 		{
 			UnauthorizedException,
 			NotFoundException,
@@ -7,12 +7,12 @@ const 	BaseSDK 		= require('./BaseSDK'),
 			ValidationError,
 			ServiceUnavailable,
 			UnderMaintenanceException,
-		} = require('error-handler-node');
+		} = require('@umany/error-handler-node');
 
 
 module.exports = {
+	AuthSDK,
 	BaseSDK,
-	ServiceClient,
 	UnauthorizedException,
 	NotFoundException,
 	ForbiddenException,
