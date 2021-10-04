@@ -1,5 +1,5 @@
 {
-  "name": "sdk-js-template",
+  "name": "@umany/service-sdk-js",
   "version": "1.0.0",
   "description": "",
   "main": "./src/main.js",
@@ -8,12 +8,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/umany-global/sdk-js-template.git"
+    "url": "git+https://github.com/umany-global/service-sdk-js.git"
   },
   "author": "Dan",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/umany-global/sdk-js-template/issues"
+    "url": "https://github.com/umany-global/service-sdk-js/issues"
   },
-  "homepage": "https://github.com/umany-global/sdk-js-template#readme"
+  "homepage": "https://github.com/umany-global/service-sdk-js#readme",
+  "dependencies": {
+    "axios": "^0.21.4",
+    "browserfy": "^1.0.0",
+    "@umany/auth-sdk-js": "file:../auth-sdk-js",
+    "@umany/error-handler-node": "file:../error-handler-node"
+  }
 }
