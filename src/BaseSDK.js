@@ -47,12 +47,23 @@ module.exports = class BaseSDK {
 				throw new Error('auth param must be an instance of AuthSDK from the following package: auth-sdk-js');	
 			}			
 		}
-		else {
-
-			config.auth = new AuthSDK( config );
-		}
 
 		this.#config = config;
+	}
+
+
+	init ( ) {
+
+		if ( this.#config.auth ) {
+
+			return this.#config.auth.init();
+		}
+		else {
+
+			return new Promise ( resolve => {
+				resolve();
+			})
+		}
 	}
 
 
