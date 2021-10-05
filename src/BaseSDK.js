@@ -187,10 +187,10 @@ module.exports = class BaseSDK {
 				params.headers = {};
 			}
 
-			params.baseURL = this.#config.baseURL;
-			params.responseType = 'json';
-			params.responseEncoding = 'utf8';		
-			params.headers['Content-Type'] = 'application/json';
+			params.baseURL 			= this.#config.baseURL;
+			params.responseType 		= 'json';
+			params.responseEncoding 	= 'utf8';		
+			params.headers['Content-Type'] 	= 'application/json';
 
 			if ( params.public ) {
 
@@ -204,7 +204,7 @@ module.exports = class BaseSDK {
 
 				if ( this.#config.auth ) {
 
-					return this.#config.auth.getToken().then( token => {
+					return this.#config.auth.getAccessToken().then( token => {
 
 						params.headers['Authorization'] = 'Bearer ' + token;
 
