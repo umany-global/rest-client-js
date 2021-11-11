@@ -12,7 +12,7 @@ const 	axios 	= require('axios'),
 
 module.exports = class BaseSDK {
 
-	#config:
+	#config;
 
 
 	constructor ( config ) {
@@ -40,15 +40,30 @@ module.exports = class BaseSDK {
 		{
 			throw new Error('trackEvent param must be a function');
 		}
-		else if ( 
-			config.auth 
-			&& !( config.auth instanceof AuthSDK )
-		)
-		{
-			throw new Error('auth param must be an instance of AuthSDK from the following package: auth-sdk-js');
+		else if ( config.auth ) {
+
+			if ( !( config.auth instanceof AuthSDK ) ) {
+
+				throw new Error('auth param must be an instance of AuthSDK from the following package: auth-sdk-js');	
+			}			
 		}
 
 		this.#config = config;
+	}
+
+
+	init ( ) {
+
+		if ( this.#config.auth ) {
+
+			return this.#config.auth.init();
+		}
+		else {
+
+			return new Promise ( resolve => {
+				resolve();
+			})
+		}
 	}
 
 
@@ -60,7 +75,7 @@ module.exports = class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			data: params.data,
-			eventID: params.eventID,
+			eventId: params.eventId,
 			public: params.public,
 		});
 	}
@@ -74,7 +89,7 @@ module.exports = class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			maxContentLength: params.maxResponseSize ?? 2000,
-			eventID: params.eventID,
+			eventId: params.eventId,
 			public: params.public,
 		});
 	}
@@ -88,19 +103,19 @@ module.exports = class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			data: params.data,
-			eventID: params.eventID,
+			eventId: params.eventId,
 			public: params.public,
 		});
 	}
 
 
-	delete ( params ) {
+	remove ( params ) {
 
 		return this.#request({
 			url: params.path,
 			method: 'delete',
 			headers: params.headers,
-			eventID: params.eventID,
+			eventId: params.eventId,
 			public: params.public,
 		});
 	}
@@ -115,7 +130,7 @@ module.exports = class BaseSDK {
 			params: params.query,
 			data: params.data,
 			maxContentLength: params.maxResponseSize ?? 2000,
-			eventID: params.eventID,
+			eventId: params.eventId,
 			public: params.public,
 		});
 	}
@@ -172,10 +187,10 @@ module.exports = class BaseSDK {
 				params.headers = {};
 			}
 
-			params.baseURL: this.#config.baseURL;
-			params.responseType: 'json';
-			params.responseEncoding: 'utf8';		
-			params.headers['Content-Type'] = 'application/json';
+			params.baseURL 			= this.#config.baseURL;
+			params.responseType 		= 'json';
+			params.responseEncoding 	= 'utf8';		
+			params.headers['Content-Type'] 	= 'application/json';
 
 			if ( params.public ) {
 
@@ -189,7 +204,7 @@ module.exports = class BaseSDK {
 
 				if ( this.#config.auth ) {
 
-					return this.#config.auth.getToken().then( token => {
+					return this.#config.auth.getAccessToken().then( token => {
 
 						params.headers['Authorization'] = 'Bearer ' + token;
 
@@ -209,8 +224,8 @@ module.exports = class BaseSDK {
 
 		return this.#prepare( params => {
 
-			let eventId = params.eventID;
-			delete params.eventID;
+			let eventId = params.eventId;
+			delete params.eventId;
 
 			return axios( params ).then( response => {
 
