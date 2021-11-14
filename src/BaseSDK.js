@@ -25,10 +25,6 @@ module.exports = class BaseSDK {
 
 			throw new Error('baseURL param must be a string');
 		}
-		if ( !config.bundlePath ) {
-
-			throw new Error('Param required: bundlePath');
-		}
 		else if ( typeof config.bundlePath !== 'string' ) {
 
 			throw new Error('bundlePath param must be a string');
@@ -44,7 +40,7 @@ module.exports = class BaseSDK {
 
 			if ( !( config.auth instanceof AuthSDK ) ) {
 
-				throw new Error('auth param must be an instance of AuthSDK from the following package: auth-sdk-js');	
+				throw new Error('auth param must be an instance of AuthSDK from the package: @umany/auth-sdk-js');
 			}			
 		}
 
