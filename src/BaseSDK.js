@@ -183,7 +183,17 @@ module.exports = class BaseSDK {
 				params.headers = {};
 			}
 
-			params.baseURL 			= this.#config.baseURL;
+			let env = this.#config.currentEnv;
+
+			if ( env ) {
+
+				params.baseURL = this.#config.envs[env].url;
+			}
+			else {
+
+				params.baseURL = this.#config.baseURL;
+			}
+
 			params.responseType 		= 'json';
 			params.responseEncoding 	= 'utf8';		
 			params.headers['Content-Type'] 	= 'application/json';
