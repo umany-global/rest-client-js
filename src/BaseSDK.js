@@ -1,5 +1,4 @@
 const 	axios 	= require('axios'),
-        AuthSDK = require('@umany/auth-sdk-js'),
 	{
 		UnauthorizedException,
 		NotFoundException,
@@ -35,13 +34,6 @@ module.exports = class BaseSDK {
 		) 
 		{
 			throw new Error('trackEvent param must be a function');
-		}
-		else if ( config.auth ) {
-
-			if ( !( config.auth instanceof AuthSDK ) ) {
-
-				throw new Error('auth param must be an instance of AuthSDK from the package: @umany/auth-sdk-js');
-			}			
 		}
 
 		this.#config = config;
