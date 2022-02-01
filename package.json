@@ -1,6 +1,6 @@
 {
   "name": "@umany/service-sdk-js",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "",
   "main": "./src/main.js",
   "scripts": {
@@ -17,9 +17,8 @@
   },
   "homepage": "https://github.com/umany-global/service-sdk-js#readme",
   "dependencies": {
-    "@umany/auth-sdk-js": "^1.0.0",
-    "@umany/error-handler-node": "^1.0.0",
-    "axios": "^0.21.4",
-    "browserfy": "^1.0.0"
-  }
+    "@umany/http-exceptions-js": "^1.0.5",
+    "axios": "^0.21.4"
+  },
+  "devDependencies": {}
 }
