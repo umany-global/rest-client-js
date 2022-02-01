@@ -2,6 +2,7 @@
 node_modules
 
 .yarn/*
+yarn-error.log
 !.yarn/cache
 !.yarn/patches
 !.yarn/plugins
