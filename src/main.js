@@ -1,12 +1,5 @@
-const 	axios = require('axios'),
-		{
-			UnauthorizedException,
-			NotFoundException,
-			ForbiddenException,
-			ValidationError,
-			ServiceUnavailableException,
-			UnderMaintenanceException,
-		} = require('@umany/http-exceptions-js');
+const 	axios 				= require('axios'),
+		ServiceException 	= require('./Exceptions/ServiceException');
 
 
 module.exports = class BaseSDK {
@@ -25,11 +18,18 @@ module.exports = class BaseSDK {
 			throw new Error('baseURL param must be a string');
 		}
 		else if ( 
-			config.trackEvent
-			&& typeof config.trackEvent !== 'function' 
+			config.getAccessToken
+			&& typeof config.getAccessToken !== 'function' 
 		) 
 		{
-			throw new Error('trackEvent param must be a function');
+			throw new Error('getAccessToken param must be a function');
+		}
+		else if ( 
+			config.onEvent
+			&& typeof config.onEvent !== 'function' 
+		) 
+		{
+			throw new Error('onEvent param must be a function');
 		}
 		else {
 
@@ -44,21 +44,6 @@ module.exports = class BaseSDK {
 		}
 
 		this.#config = config;
-	}
-
-
-	init ( ) {
-
-		if ( this.#config.auth ) {
-
-			return this.#config.auth.init();
-		}
-		else {
-
-			return new Promise ( resolve => {
-				resolve();
-			})
-		}
 	}
 
 
@@ -131,48 +116,6 @@ module.exports = class BaseSDK {
 	}
 
 
-
-	#handleError ( error ) {
-
-		switch ( error.response.status ) {
-
-			case 400:
-
-				if ( error.response.data.error.code == 'validationError' ) {
-
-					return new ValidationError(
-						error.response.data.error.messages
-					)
-				}
-				else {
-
-					return error;
-				}
-
-			case 401:
-				return new UnauthorizedException;
-
-			case 403:
-				return new ForbiddenException;
-
-			case 404:
-				return new NotFoundException;
-
-			case 500:
-				return new ServiceUnavailableException;
-
-			default:
-				return error;
-		}
-	}
-
-
-	getBundlePath( ) {
-
-		return this.#config.bundlePath;
-	}
-
-
 	#prepare ( params ) {
 
 		return new Promise ( ( resolve, reject ) => {
@@ -197,9 +140,10 @@ module.exports = class BaseSDK {
 
 				delete params.public;
 
-				if ( this.#config.auth ) {
 
-					return this.#config.auth.getAccessToken().then( token => {
+				if ( this.#config.getAccessToken ) {
+
+					return this.#config.getAccessToken().then( token => {
 
 						params.headers['Authorization'] = 'Bearer ' + token;
 
@@ -224,22 +168,42 @@ module.exports = class BaseSDK {
 
 			return axios( params ).then( response => {
 
-				this.#trackEvent(
+				this.#logEvent(
 					eventId,
 					response.data,
 				);
 
 				return response.data;
-			});			
+			});
+		}).catch( err => {
+
+			if ( 
+				error.response 
+				&& error.response.data
+				&& error response.data.error
+			) 
+			{
+				reject( 
+					new ServiceException( 
+						response.data.code, 
+						response.data.error.message, 
+						response.status 
+					)
+				);
+			}
+			else {
+
+				reject( err );
+			}
 		});
 	}
 
 
-	#trackEvent ( id, eventData = null ) {
+	#logEvent ( id, eventData = null ) {
 
-		if ( id && this.#config.trackEvent ) {
+		if ( id && this.#config.onEvent ) {
 
-			this.#config.trackEvent( id, eventData ?? {} );
+			this.#config.logEvent( id, eventData ?? {} );
 		}
 	}
 
