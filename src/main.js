@@ -120,6 +120,8 @@ module.exports = class BaseSDK {
 
 		return new Promise ( ( resolve, reject ) => {
 
+			let public = params.public;
+
 			if ( !params.headers ) {
 
 				params.headers = {};
@@ -130,24 +132,25 @@ module.exports = class BaseSDK {
 			params.responseEncoding 		= 'utf8';		
 			params.headers['Content-Type'] 	= 'application/json';
 
-			if ( params.public ) {
+			delete params.public;
 
-				delete params.public;
+			if ( public ) {
 
-				return params;
+				resolve( params );
 			}
 			else {
 
-				delete params.public;
-
-
 				if ( this.#config.getAccessToken ) {
 
-					return this.#config.getAccessToken().then( token => {
+					this.#config.getAccessToken().then( token => {
 
 						params.headers['Authorization'] = 'Bearer ' + token;
 
-						return params;
+						resolve( params );
+
+					}).catch( err => {
+
+						reject( err );
 					});
 				}
 				else {
@@ -161,49 +164,58 @@ module.exports = class BaseSDK {
 
 	#request ( params ) {
 
-		return this.#prepare( params => {
+		new Promise ( ( resolve, reject ) => {
 
-			let eventId = params.eventId;
-			delete params.eventId;
+			this.#prepare( params => {
 
-			return axios( params ).then( response => {
+				let eventId = params.eventId;
+				delete params.eventId;
 
-				this.#logEvent(
-					eventId,
-					response.data,
-				);
+				return axios( params ).then( response => {
 
-				return response.data;
+					if ( response.status > 199 && response.status < 300 ) {
+
+						this.#onEvent(
+							eventId,
+							response.data,
+						);
+					}
+
+					resolve( response.data );
+				});
+
+			}).catch( err => {
+
+				if ( 
+					error.response 
+					&& error.response.data
+					&& error response.data.error
+				) 
+				{
+					reject( 
+						new ServiceException( 
+							response.data.code, 
+							response.data.error.message, 
+							response.status 
+						)
+					);
+				}
+				else {
+
+					reject( err );
+				}
+
 			});
-		}).catch( err => {
 
-			if ( 
-				error.response 
-				&& error.response.data
-				&& error response.data.error
-			) 
-			{
-				reject( 
-					new ServiceException( 
-						response.data.code, 
-						response.data.error.message, 
-						response.status 
-					)
-				);
-			}
-			else {
-
-				reject( err );
-			}
 		});
 	}
 
 
-	#logEvent ( id, eventData = null ) {
+	#onEvent ( id, eventData = null ) {
 
 		if ( id && this.#config.onEvent ) {
 
-			this.#config.logEvent( id, eventData ?? {} );
+			this.#config.onEvent( id, eventData ?? {} );
 		}
 	}
 
