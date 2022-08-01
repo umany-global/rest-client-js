@@ -24,13 +24,6 @@ module.exports = class BaseSDK {
 		{
 			throw new Error('getAccessToken param must be a function');
 		}
-		else if ( 
-			config.onEvent
-			&& typeof config.onEvent !== 'function' 
-		) 
-		{
-			throw new Error('onEvent param must be a function');
-		}
 		else {
 
 			try {
@@ -55,7 +48,6 @@ module.exports = class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			data: params.data,
-			eventId: params.eventId,
 			public: params.public,
 		});
 	}
@@ -69,7 +61,6 @@ module.exports = class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			maxContentLength: params.maxResponseSize ?? 2000,
-			eventId: params.eventId,
 			public: params.public,
 		});
 	}
@@ -83,7 +74,6 @@ module.exports = class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			data: params.data,
-			eventId: params.eventId,
 			public: params.public,
 		});
 	}
@@ -95,7 +85,6 @@ module.exports = class BaseSDK {
 			url: params.path,
 			method: 'delete',
 			headers: params.headers,
-			eventId: params.eventId,
 			public: params.public,
 		});
 	}
@@ -110,7 +99,6 @@ module.exports = class BaseSDK {
 			params: params.query,
 			data: params.data,
 			maxContentLength: params.maxResponseSize ?? 2000,
-			eventId: params.eventId,
 			public: params.public,
 		});
 	}
@@ -168,18 +156,7 @@ module.exports = class BaseSDK {
 
 			this.#prepare( params => {
 
-				let eventId = params.eventId;
-				delete params.eventId;
-
 				return axios( params ).then( response => {
-
-					if ( response.status > 199 && response.status < 300 ) {
-
-						this.#onEvent(
-							eventId,
-							response.data,
-						);
-					}
 
 					resolve( response.data );
 				});
@@ -208,15 +185,6 @@ module.exports = class BaseSDK {
 			});
 
 		});
-	}
-
-
-	#onEvent ( id, eventData = null ) {
-
-		if ( id && this.#config.onEvent ) {
-
-			this.#config.onEvent( id, eventData ?? {} );
-		}
 	}
 
 }
