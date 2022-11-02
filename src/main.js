@@ -1,8 +1,8 @@
-const 	axios 				= require('axios'),
-		ServiceException 	= require('./Exceptions/ServiceException');
+import 	axios				from 'axios';
+import 	ServiceException 	from './Exceptions/ServiceException.js';
 
 
-module.exports = class BaseSDK {
+export default class BaseSDK {
 
 	#config;
 
