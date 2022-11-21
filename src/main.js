@@ -2,7 +2,7 @@ import 	axios				from 'axios';
 import 	ServiceException 	from './Exceptions/ServiceException.js';
 
 
-export default class BaseSDK {
+export default class ServiceSDKBase {
 
 	#config;
 
@@ -48,7 +48,8 @@ export default class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			data: params.data,
-			public: params.public,
+			auth: params.auth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -61,7 +62,8 @@ export default class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			maxContentLength: params.maxResponseSize ?? 2000,
-			public: params.public,
+			auth: params.auth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -74,7 +76,8 @@ export default class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			data: params.data,
-			public: params.public,
+			auth: params.auth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -85,7 +88,8 @@ export default class BaseSDK {
 			url: params.path,
 			method: 'delete',
 			headers: params.headers,
-			public: params.public,
+			auth: params.auth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -99,7 +103,8 @@ export default class BaseSDK {
 			params: params.query,
 			data: params.data,
 			maxContentLength: params.maxResponseSize ?? 2000,
-			public: params.public,
+			auth: params.auth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -108,7 +113,7 @@ export default class BaseSDK {
 
 		return new Promise ( ( resolve, reject ) => {
 
-			let public = params.public;
+			let auth = params.auth;
 
 			if ( !params.headers ) {
 
@@ -120,15 +125,28 @@ export default class BaseSDK {
 			params.responseEncoding 		= 'utf8';		
 			params.headers['Content-Type'] 	= 'application/json';
 
-			delete params.public;
+			delete params.auth;
 
-			if ( public ) {
+			if ( auth ) {
 
 				resolve( params );
 			}
 			else {
 
-				if ( this.#config.getAccessToken ) {
+				if ( params.getAccessToken ) {
+
+					params.getAccessToken().then( token => {
+
+						params.headers['Authorization'] = 'Bearer ' + token;
+
+						resolve( params );
+
+					}).catch( err => {
+
+						reject( err );
+					});
+				}
+				else if ( this.#config.getAccessToken ) {
 
 					this.#config.getAccessToken().then( token => {
 
@@ -152,7 +170,7 @@ export default class BaseSDK {
 
 	#request ( params ) {
 
-		new Promise ( ( resolve, reject ) => {
+		return new Promise ( ( resolve, reject ) => {
 
 			this.#prepare( params => {
 
@@ -164,14 +182,14 @@ export default class BaseSDK {
 			}).catch( err => {
 
 				if ( 
-					error.response 
-					&& error.response.data
-					&& error response.data.error
+					err.response 
+					&& err.response.data
+					&& err.response.data.error
 				) 
 				{
 					reject( 
 						new ServiceException( 
-							response.data.code, 
+							response.data.error.code, 
 							response.data.error.message, 
 							response.status 
 						)
