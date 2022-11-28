@@ -9,13 +9,13 @@ export default class ServiceSDKBase {
 
 	constructor ( config ) {
 
-		if ( !config.baseURL ) {
+		if ( !config.baseUrl ) {
 
-			throw new Error('Param required: baseURL');
+			throw new Error('Param required: baseUrl');
 		}
-		else if ( typeof config.baseURL !== 'string' ) {
+		else if ( typeof config.baseUrl !== 'string' ) {
 
-			throw new Error('baseURL param must be a string');
+			throw new Error('baseUrl param must be a string');
 		}
 		else if ( 
 			config.getAccessToken
@@ -28,11 +28,11 @@ export default class ServiceSDKBase {
 
 			try {
 
-				new URL( config.baseURL )	
+				new URL( config.baseUrl )	
 			}
 			catch ( err ) {
 
-				throw new Error('baseURL must be a valid url');
+				throw new Error('baseUrl must be a valid url');
 			}
 		}
 
@@ -103,7 +103,7 @@ export default class ServiceSDKBase {
 			params: params.query,
 			data: params.data,
 			maxContentLength: params.maxResponseSize ?? 2000,
-			auth: params.auth,
+			noAuth: params.noAuth,
 			getAccessToken: params.getAccessToken,
 		});
 	}
@@ -113,7 +113,11 @@ export default class ServiceSDKBase {
 
 		return new Promise ( ( resolve, reject ) => {
 
-			let auth = params.auth;
+			let noAuth 			= params.noAuth,
+				getAccessToken  = params.getAccessToken ?? this.#config.getAccessToken;
+
+			delete 	params.noAuth,
+					params.getAccessToken;
 
 			if ( !params.headers ) {
 
@@ -125,44 +129,26 @@ export default class ServiceSDKBase {
 			params.responseEncoding 		= 'utf8';		
 			params.headers['Content-Type'] 	= 'application/json';
 
-			delete params.auth;
-
-			if ( auth ) {
+			if ( noAuth ) {
 
 				resolve( params );
 			}
+			else if ( getAccessToken ) {
+
+				getAccessToken().then( token => {
+
+					params.headers['Authorization'] = 'Bearer ' + token;
+
+					resolve( params );
+
+				}).catch( err => {
+
+					reject( err );
+				});
+			}
 			else {
 
-				if ( params.getAccessToken ) {
-
-					params.getAccessToken().then( token => {
-
-						params.headers['Authorization'] = 'Bearer ' + token;
-
-						resolve( params );
-
-					}).catch( err => {
-
-						reject( err );
-					});
-				}
-				else if ( this.#config.getAccessToken ) {
-
-					this.#config.getAccessToken().then( token => {
-
-						params.headers['Authorization'] = 'Bearer ' + token;
-
-						resolve( params );
-
-					}).catch( err => {
-
-						reject( err );
-					});
-				}
-				else {
-
-					reject( new Error('Config param required: auth') );
-				}
+				reject( new Error('Config or method param required: getAccessToken') );
 			}
 		});
 	}
