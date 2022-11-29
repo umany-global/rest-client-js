@@ -113,44 +113,55 @@ export default class ServiceSDKBase {
 
 		return new Promise ( ( resolve, reject ) => {
 
-			let noAuth 			= params.noAuth,
-				getAccessToken  = params.getAccessToken ?? this.#config.getAccessToken;
+			try {
 
-			delete 	params.noAuth,
-					params.getAccessToken;
+				let noAuth 			= params.noAuth,
+					getAccessToken  = params.getAccessToken ?? this.#config.getAccessToken;
 
-			if ( !params.headers ) {
+				delete 	params.noAuth,
+						params.getAccessToken;
 
-				params.headers = {};
-			}
+				if ( !params.headers ) {
 
-			params.baseUrl 					= this.#config.baseUrl;
-			params.responseType 			= 'json';
-			params.responseEncoding 		= 'utf8';		
-			params.headers['Content-Type'] 	= 'application/json';
+					params.headers = {};
+				}
 
-			if ( noAuth ) {
+				params.baseURL 					= this.#config.baseUrl;
+				params.responseType 			= 'json';
+				params.responseEncoding 		= 'utf8';		
+				params.headers['Content-Type'] 	= 'application/json';
 
-				resolve( params );
-			}
-			else if ( getAccessToken ) {
 
-				getAccessToken().then( token => {
-
-					params.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
+				if ( noAuth ) {
 
 					resolve( params );
+				}
+				else if ( getAccessToken ) {
 
-				}).catch( err => {
+					getAccessToken().then( token => {
 
-					reject( err );
-				});
+						params.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
+
+						resolve( params );
+
+					}).catch( err => {
+
+						reject( err );
+					});
+				}
+				else {
+
+					reject( new Error('Config or method param required: getAccessToken') );
+				}
+
 			}
-			else {
+			catch( err ) {
 
-				reject( new Error('Config or method param required: getAccessToken') );
+				reject( err );
 			}
+
 		});
+
 	}
 
 
@@ -158,7 +169,7 @@ export default class ServiceSDKBase {
 
 		return new Promise ( ( resolve, reject ) => {
 
-			this.#prepare( params => {
+			this.#prepare( params ).then( params => {
 
 				return axios( params ).then( response => {
 
@@ -173,6 +184,7 @@ export default class ServiceSDKBase {
 					&& err.response.data.error
 				) 
 				{
+
 					reject( 
 						new ServiceException( 
 							response.data.error.code, 
