@@ -22,7 +22,7 @@ export default class ServiceSDKBase {
 			&& typeof config.getAccessToken !== 'function' 
 		) 
 		{
-			throw new Error('getAccessToken param must be a function');
+			throw new Error('getAccessToken param must be a function and return Promise');
 		}
 		else {
 
@@ -124,7 +124,7 @@ export default class ServiceSDKBase {
 				params.headers = {};
 			}
 
-			params.baseURL 					= this.#config.baseURL;
+			params.baseUrl 					= this.#config.baseUrl;
 			params.responseType 			= 'json';
 			params.responseEncoding 		= 'utf8';		
 			params.headers['Content-Type'] 	= 'application/json';
@@ -137,7 +137,7 @@ export default class ServiceSDKBase {
 
 				getAccessToken().then( token => {
 
-					params.headers['Authorization'] = 'Bearer ' + token;
+					params.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
 
 					resolve( params );
 
