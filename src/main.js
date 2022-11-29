@@ -181,15 +181,15 @@ export default class ServiceSDKBase {
 				if ( 
 					err.response 
 					&& err.response?.data
-					&& err.response.data?.error
+					&& err.response?.data?.error
 				) 
 				{
 
 					reject( 
 						new ServiceException( 
-							response.data.error.code, 
-							response.data.error.message, 
-							response.status 
+							err.response.data.error.code, 
+							err.response.data.error.message, 
+							err.response.status 
 						)
 					);
 				}
