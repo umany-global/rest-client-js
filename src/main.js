@@ -180,8 +180,8 @@ export default class ServiceSDKBase {
 
 				if ( 
 					err.response 
-					&& err.response.data
-					&& err.response.data.error
+					&& err.response?.data
+					&& err.response.data?.error
 				) 
 				{
 
