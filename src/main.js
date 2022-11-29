@@ -1,45 +1,38 @@
-const 	axios 				= require('axios'),
-		ServiceException 	= require('./Exceptions/ServiceException');
+import 	axios				from 'axios';
+import 	ServiceException 	from './Exceptions/ServiceException.js';
 
 
-module.exports = class BaseSDK {
+export default class ServiceSDKBase {
 
 	#config;
 
 
 	constructor ( config ) {
 
-		if ( !config.baseURL ) {
+		if ( !config.baseUrl ) {
 
-			throw new Error('Param required: baseURL');
+			throw new Error('Param required: baseUrl');
 		}
-		else if ( typeof config.baseURL !== 'string' ) {
+		else if ( typeof config.baseUrl !== 'string' ) {
 
-			throw new Error('baseURL param must be a string');
+			throw new Error('baseUrl param must be a string');
 		}
 		else if ( 
 			config.getAccessToken
 			&& typeof config.getAccessToken !== 'function' 
 		) 
 		{
-			throw new Error('getAccessToken param must be a function');
-		}
-		else if ( 
-			config.onEvent
-			&& typeof config.onEvent !== 'function' 
-		) 
-		{
-			throw new Error('onEvent param must be a function');
+			throw new Error('getAccessToken param must be a function and return Promise');
 		}
 		else {
 
 			try {
 
-				new URL( config.baseURL )	
+				new URL( config.baseUrl )	
 			}
 			catch ( err ) {
 
-				throw new Error('baseURL must be a valid url');
+				throw new Error('baseUrl must be a valid url');
 			}
 		}
 
@@ -55,8 +48,8 @@ module.exports = class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			data: params.data,
-			eventId: params.eventId,
-			public: params.public,
+			auth: params.auth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -69,8 +62,8 @@ module.exports = class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			maxContentLength: params.maxResponseSize ?? 2000,
-			eventId: params.eventId,
-			public: params.public,
+			auth: params.auth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -83,8 +76,8 @@ module.exports = class BaseSDK {
 			headers: params.headers,
 			params: params.query,
 			data: params.data,
-			eventId: params.eventId,
-			public: params.public,
+			auth: params.auth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -95,8 +88,8 @@ module.exports = class BaseSDK {
 			url: params.path,
 			method: 'delete',
 			headers: params.headers,
-			eventId: params.eventId,
-			public: params.public,
+			auth: params.auth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -110,8 +103,8 @@ module.exports = class BaseSDK {
 			params: params.query,
 			data: params.data,
 			maxContentLength: params.maxResponseSize ?? 2000,
-			eventId: params.eventId,
-			public: params.public,
+			noAuth: params.noAuth,
+			getAccessToken: params.getAccessToken,
 		});
 	}
 
@@ -120,43 +113,42 @@ module.exports = class BaseSDK {
 
 		return new Promise ( ( resolve, reject ) => {
 
-			let public = params.public;
+			let noAuth 			= params.noAuth,
+				getAccessToken  = params.getAccessToken ?? this.#config.getAccessToken;
+
+			delete 	params.noAuth,
+					params.getAccessToken;
 
 			if ( !params.headers ) {
 
 				params.headers = {};
 			}
 
-			params.baseURL 					= this.#config.baseURL;
+			params.baseUrl 					= this.#config.baseUrl;
 			params.responseType 			= 'json';
 			params.responseEncoding 		= 'utf8';		
 			params.headers['Content-Type'] 	= 'application/json';
 
-			delete params.public;
-
-			if ( public ) {
+			if ( noAuth ) {
 
 				resolve( params );
 			}
+			else if ( getAccessToken ) {
+
+				getAccessToken().then( token => {
+
+					params.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
+
+					resolve( params );
+
+				}).catch( err => {
+
+					reject( err );
+				});
+			}
 			else {
 
-				if ( this.#config.getAccessToken ) {
-
-					this.#config.getAccessToken().then( token => {
-
-						params.headers['Authorization'] = 'Bearer ' + token;
-
-						resolve( params );
-
-					}).catch( err => {
-
-						reject( err );
-					});
-				}
-				else {
-
-					reject( new Error('Config param required: auth') );
-				}
+				reject( new Error('Config or method param required: getAccessToken') );
 			}
 		});
 	}
@@ -164,22 +156,11 @@ module.exports = class BaseSDK {
 
 	#request ( params ) {
 
-		new Promise ( ( resolve, reject ) => {
+		return new Promise ( ( resolve, reject ) => {
 
 			this.#prepare( params => {
 
-				let eventId = params.eventId;
-				delete params.eventId;
-
 				return axios( params ).then( response => {
-
-					if ( response.status > 199 && response.status < 300 ) {
-
-						this.#onEvent(
-							eventId,
-							response.data,
-						);
-					}
 
 					resolve( response.data );
 				});
@@ -187,14 +168,14 @@ module.exports = class BaseSDK {
 			}).catch( err => {
 
 				if ( 
-					error.response 
-					&& error.response.data
-					&& error response.data.error
+					err.response 
+					&& err.response.data
+					&& err.response.data.error
 				) 
 				{
 					reject( 
 						new ServiceException( 
-							response.data.code, 
+							response.data.error.code, 
 							response.data.error.message, 
 							response.status 
 						)
@@ -208,15 +189,6 @@ module.exports = class BaseSDK {
 			});
 
 		});
-	}
-
-
-	#onEvent ( id, eventData = null ) {
-
-		if ( id && this.#config.onEvent ) {
-
-			this.#config.onEvent( id, eventData ?? {} );
-		}
 	}
 
 }

@@ -1,7 +1,7 @@
-const { HttpException } = require('@umany/base-exceptions-js');
+import { HttpException } from '@umany/base-exceptions-js';
 
 
-module.exports = class ServiceException extends HttpException {
+export default class ServiceException extends HttpException {
 
 	constructor ( code, message, httpCode ) {
 
