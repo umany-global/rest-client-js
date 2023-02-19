@@ -22,7 +22,7 @@ export default class ServiceSDKBase {
 			&& typeof config.getAccessToken !== 'function' 
 		) 
 		{
-			throw new Error('getAccessToken param must be a function and return Promise');
+			throw new Error('getAccessToken param must be a valid callback and return Promise<token>');
 		}
 		else {
 
@@ -43,13 +43,11 @@ export default class ServiceSDKBase {
 	post ( params ) {
 
 		return this.#request({
-			url: params.path,
-			method: 'post',
-			headers: params.headers,
-			params: params.query,
-			data: params.data,
-			auth: params.auth,
-			getAccessToken: params.getAccessToken,
+			...( params ),
+			...({
+				method: 'post',
+				query: undefined,
+			}),
 		});
 	}
 
@@ -57,13 +55,11 @@ export default class ServiceSDKBase {
 	get ( params ) { 
 
 		return this.#request({
-			url: params.path,
-			method: 'get',
-			headers: params.headers,
-			params: params.query,
-			maxContentLength: params.maxResponseSize ?? 2000,
-			auth: params.auth,
-			getAccessToken: params.getAccessToken,
+			...( params ),
+			...({
+				method: 'get',
+				data: undefined,
+			}),
 		});
 	}
 
@@ -71,13 +67,11 @@ export default class ServiceSDKBase {
 	patch ( params ) {
 
 		return this.#request({
-			url: params.path,
-			method: 'patch',
-			headers: params.headers,
-			params: params.query,
-			data: params.data,
-			auth: params.auth,
-			getAccessToken: params.getAccessToken,
+			...( params ),
+			...({
+				method: 'patch',
+				query: undefined,
+			}),
 		});
 	}
 
@@ -85,11 +79,12 @@ export default class ServiceSDKBase {
 	remove ( params ) {
 
 		return this.#request({
-			url: params.path,
-			method: 'delete',
-			headers: params.headers,
-			auth: params.auth,
-			getAccessToken: params.getAccessToken,
+			...( params ),
+			...({
+				method: 'delete',
+				query: undefined,
+				data: undefined,
+			}),
 		});
 	}
 
@@ -97,14 +92,11 @@ export default class ServiceSDKBase {
 	put ( params ) {
 
 		return this.#request({
-			url: params.path,
-			method: 'put',
-			headers: params.headers,
-			params: params.query,
-			data: params.data,
-			maxContentLength: params.maxResponseSize ?? 2000,
-			noAuth: params.noAuth,
-			getAccessToken: params.getAccessToken,
+			...( params ),
+			...({
+				method: 'put',
+				query: undefined,
+			}),
 		});
 	}
 
@@ -115,34 +107,52 @@ export default class ServiceSDKBase {
 
 			try {
 
-				let noAuth 			= params.noAuth,
-					getAccessToken  = params.getAccessToken ?? this.#config.getAccessToken;
+				let getAccessToken  = params.getAccessToken ?? this.#config.getAccessToken,
+					axiosParams  	= {
+						baseURL: this.#config.baseUrl,
+						method: params.method,
+						url: params.path,
+						params: params.query,
+						responseType: 'json',
+						responseEncoding: 'utf8',
+						headers: Object.assign(
+							params.headers ?? {},
+							{
+								'Content-Type': 'application/json',
+							},
+						),
+						maxContentLength: params.maxResponseSize ?? 2000, // bytes
+						data: params.data,
+						onUploadProgress: params.onUploadProgress, // callback -> ( nativeProgressEvent ) => {}
+						onDownloadProgress: params.onDownloadProgress, // callback -> ( nativeProgressEvent ) => {}
+						timeout: params.timeout ?? 0, // miliseconds
+					};
 
-				delete 	params.noAuth,
-						params.getAccessToken;
 
-				if ( !params.headers ) {
+				if ( params.noAuth ) {
 
-					params.headers = {};
+					resolve( axiosParams );
 				}
+				else if ( params.getAccessToken ) {
 
-				params.baseURL 					= this.#config.baseUrl;
-				params.responseType 			= 'json';
-				params.responseEncoding 		= 'utf8';		
-				params.headers['Content-Type'] 	= 'application/json';
+					params.getAccessToken().then( token => {
 
+						axiosParams.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
 
-				if ( noAuth ) {
+						resolve( axiosParams );
 
-					resolve( params );
+					}).catch( err => {
+
+						reject( err );
+					});
 				}
-				else if ( getAccessToken ) {
+				else if ( this.#config.getAccessToken ) {
 
-					getAccessToken().then( token => {
+					this.#config.getAccessToken().then( token => {
 
-						params.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
+						axiosParams.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
 
-						resolve( params );
+						resolve( axiosParams );
 
 					}).catch( err => {
 
@@ -179,9 +189,8 @@ export default class ServiceSDKBase {
 			}).catch( err => {
 
 				if ( 
-					err.response 
-					&& err.response?.data
-					&& err.response?.data?.error
+					err.response?.data?.error?.code
+					&& err.response?.data?.error?.message
 				) 
 				{
 
