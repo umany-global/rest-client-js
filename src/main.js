@@ -107,8 +107,7 @@ export default class ServiceSDKBase {
 
 			try {
 
-				let getAccessToken  = params.getAccessToken ?? this.#config.getAccessToken,
-					axiosParams  	= {
+				let axiosParams = {
 						baseURL: this.#config.baseUrl,
 						method: params.method,
 						url: params.path,
