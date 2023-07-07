@@ -76,7 +76,7 @@ export default class ServiceSDKBase {
 	}
 
 
-	remove ( params ) {
+	delete ( params ) {
 
 		return this.#request({
 			...( params ),
@@ -108,42 +108,29 @@ export default class ServiceSDKBase {
 			try {
 
 				let axiosParams = {
-						baseURL: this.#config.baseUrl,
-						method: params.method,
-						url: params.path,
-						params: params.query,
-						responseType: 'json',
-						responseEncoding: 'utf8',
-						headers: Object.assign(
-							params.headers ?? {},
-							{
-								'Content-Type': 'application/json',
-							},
-						),
-						maxContentLength: params.maxResponseSize ?? 2000, // bytes
-						data: params.data,
-						onUploadProgress: params.onUploadProgress, // callback -> ( nativeProgressEvent ) => {}
-						onDownloadProgress: params.onDownloadProgress, // callback -> ( nativeProgressEvent ) => {}
-						timeout: params.timeout ?? 0, // miliseconds
-					};
+					baseURL: this.#config.baseUrl,
+					method: params.method,
+					url: params.path,
+					params: params.query,
+					responseType: 'json',
+					responseEncoding: 'utf8',
+					headers: Object.assign(
+						params.headers ?? {},
+						{
+							'Content-Type': 'application/json',
+						},
+					),
+					maxContentLength: params.maxResponseSize ?? 2000, // bytes
+					data: params.data,
+					onUploadProgress: params.onUploadProgress, // callback -> ( nativeProgressEvent ) => {}
+					onDownloadProgress: params.onDownloadProgress, // callback -> ( nativeProgressEvent ) => {}
+					timeout: params.timeout ?? 0, // miliseconds
+				};
 
 
 				if ( params.noAuth ) {
 
 					resolve( axiosParams );
-				}
-				else if ( params.getAccessToken ) {
-
-					params.getAccessToken().then( token => {
-
-						axiosParams.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
-
-						resolve( axiosParams );
-
-					}).catch( err => {
-
-						reject( err );
-					});
 				}
 				else if ( this.#config.getAccessToken ) {
 
@@ -160,7 +147,7 @@ export default class ServiceSDKBase {
 				}
 				else {
 
-					reject( new Error('Config or method param required: getAccessToken') );
+					reject( new Error('Config param required: getAccessToken') );
 				}
 
 			}
