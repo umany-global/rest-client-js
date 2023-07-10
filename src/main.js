@@ -127,14 +127,16 @@ export default class ServiceSDKBase {
 					timeout: params.timeout ?? 0, // miliseconds
 				};
 
+				let getAccessToken = params.getAccessToken ?? this.#config.getAccessToken;
+
 
 				if ( params.noAuth ) {
 
 					resolve( axiosParams );
 				}
-				else if ( this.#config.getAccessToken ) {
+				else if ( getAccessToken ) {
 
-					this.#config.getAccessToken().then( token => {
+					getAccessToken.then( token => {
 
 						axiosParams.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
 
