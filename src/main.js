@@ -1,8 +1,8 @@
 import 	axios				from 'axios';
-import 	ServiceException 	from './Exceptions/ServiceException.js';
+import 	RESTException 		from './Exceptions/RESTException.js';
 
 
-export default class ServiceSDKBase {
+export default class RESTClientBase {
 
 	#config;
 
@@ -22,7 +22,7 @@ export default class ServiceSDKBase {
 			&& typeof config.getAccessToken !== 'function' 
 		) 
 		{
-			throw new Error('getAccessToken param must be a valid callback and return Promise<token>');
+			throw new Error('getAccessToken param must be a valid callback and return Promise<string>');
 		}
 		else {
 
@@ -138,7 +138,7 @@ export default class ServiceSDKBase {
 
 					getAccessToken.then( token => {
 
-						axiosParams.headers['Authorization'] = token ? 'Bearer ' + token : undefined;
+						axiosParams.headers['Authorization'] = token;
 
 						resolve( axiosParams );
 
@@ -183,10 +183,13 @@ export default class ServiceSDKBase {
 				{
 
 					reject( 
-						new ServiceException( 
+						new RESTException( 
 							err.response.data.error.code, 
 							err.response.data.error.message, 
-							err.response.status 
+							err.response.status,
+							{
+								cause: err,
+							}
 						)
 					);
 				}

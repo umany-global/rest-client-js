@@ -1,5 +1,5 @@
 {
-  "name": "@umany/service-sdk-js",
+  "name": "@umany/rest-client-js",
   "version": "1.3.1",
   "description": "",
   "type": "module",
@@ -9,16 +9,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/umany-global/service-sdk-js.git"
+    "url": "git+https://github.com/umany-global/rest-client-js.git"
   },
   "author": "Dan",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/umany-global/service-sdk-js/issues"
+    "url": "https://github.com/umany-global/rest-client-js/issues"
   },
-  "homepage": "https://github.com/umany-global/service-sdk-js#readme",
+  "homepage": "https://github.com/umany-global/rest-client-js#readme",
   "dependencies": {
-    "@umany/base-exceptions-js": "^1.1.6",
-    "axios": "^1.3.3"
+    "@umany-global/base-exceptions-js": "^1.2.4",
+    "axios": "^1.6.2"
   }
 }
