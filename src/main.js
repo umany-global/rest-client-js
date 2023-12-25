@@ -1,45 +1,38 @@
-const 	axios = require('axios'),
-		{
-			UnauthorizedException,
-			NotFoundException,
-			ForbiddenException,
-			ValidationError,
-			ServiceUnavailableException,
-			UnderMaintenanceException,
-		} = require('@umany/http-exceptions-js');
+import 	axios				from 'axios';
+import 	RESTException 		from './Exceptions/RESTException.js';
 
 
-module.exports = class BaseSDK {
+export default class RESTClientBase {
 
 	#config;
 
 
 	constructor ( config ) {
 
-		if ( !config.baseURL ) {
+		if ( !config.baseUrl ) {
 
-			throw new Error('Param required: baseURL');
+			throw new Error('Param required: baseUrl');
 		}
-		else if ( typeof config.baseURL !== 'string' ) {
+		else if ( typeof config.baseUrl !== 'string' ) {
 
-			throw new Error('baseURL param must be a string');
+			throw new Error('baseUrl param must be a string');
 		}
 		else if ( 
-			config.trackEvent
-			&& typeof config.trackEvent !== 'function' 
+			config.getAccessToken
+			&& typeof config.getAccessToken !== 'function' 
 		) 
 		{
-			throw new Error('trackEvent param must be a function');
+			throw new Error('getAccessToken param must be a valid callback and return Promise<string>');
 		}
 		else {
 
 			try {
 
-				new URL( config.baseURL )	
+				new URL( config.baseUrl )	
 			}
 			catch ( err ) {
 
-				throw new Error('baseURL must be a valid url');
+				throw new Error('baseUrl must be a valid url');
 			}
 		}
 
@@ -47,31 +40,14 @@ module.exports = class BaseSDK {
 	}
 
 
-	init ( ) {
-
-		if ( this.#config.auth ) {
-
-			return this.#config.auth.init();
-		}
-		else {
-
-			return new Promise ( resolve => {
-				resolve();
-			})
-		}
-	}
-
-
 	post ( params ) {
 
 		return this.#request({
-			url: params.path,
-			method: 'post',
-			headers: params.headers,
-			params: params.query,
-			data: params.data,
-			eventId: params.eventId,
-			public: params.public,
+			...( params ),
+			...({
+				method: 'post',
+				query: undefined,
+			}),
 		});
 	}
 
@@ -79,13 +55,11 @@ module.exports = class BaseSDK {
 	get ( params ) { 
 
 		return this.#request({
-			url: params.path,
-			method: 'get',
-			headers: params.headers,
-			params: params.query,
-			maxContentLength: params.maxResponseSize ?? 2000,
-			eventId: params.eventId,
-			public: params.public,
+			...( params ),
+			...({
+				method: 'get',
+				data: undefined,
+			}),
 		});
 	}
 
@@ -93,25 +67,24 @@ module.exports = class BaseSDK {
 	patch ( params ) {
 
 		return this.#request({
-			url: params.path,
-			method: 'patch',
-			headers: params.headers,
-			params: params.query,
-			data: params.data,
-			eventId: params.eventId,
-			public: params.public,
+			...( params ),
+			...({
+				method: 'patch',
+				query: undefined,
+			}),
 		});
 	}
 
 
-	remove ( params ) {
+	delete ( params ) {
 
 		return this.#request({
-			url: params.path,
-			method: 'delete',
-			headers: params.headers,
-			eventId: params.eventId,
-			public: params.public,
+			...( params ),
+			...({
+				method: 'delete',
+				query: undefined,
+				data: undefined,
+			}),
 		});
 	}
 
@@ -119,57 +92,12 @@ module.exports = class BaseSDK {
 	put ( params ) {
 
 		return this.#request({
-			url: params.path,
-			method: 'put',
-			headers: params.headers,
-			params: params.query,
-			data: params.data,
-			maxContentLength: params.maxResponseSize ?? 2000,
-			eventId: params.eventId,
-			public: params.public,
+			...( params ),
+			...({
+				method: 'put',
+				query: undefined,
+			}),
 		});
-	}
-
-
-
-	#handleError ( error ) {
-
-		switch ( error.response.status ) {
-
-			case 400:
-
-				if ( error.response.data.error.code == 'validationError' ) {
-
-					return new ValidationError(
-						error.response.data.error.messages
-					)
-				}
-				else {
-
-					return error;
-				}
-
-			case 401:
-				return new UnauthorizedException;
-
-			case 403:
-				return new ForbiddenException;
-
-			case 404:
-				return new NotFoundException;
-
-			case 500:
-				return new ServiceUnavailableException;
-
-			default:
-				return error;
-		}
-	}
-
-
-	getBundlePath( ) {
-
-		return this.#config.bundlePath;
 	}
 
 
@@ -177,70 +105,102 @@ module.exports = class BaseSDK {
 
 		return new Promise ( ( resolve, reject ) => {
 
-			if ( !params.headers ) {
+			try {
 
-				params.headers = {};
-			}
+				let axiosParams = {
+					baseURL: this.#config.baseUrl,
+					method: params.method,
+					url: params.path,
+					params: params.query,
+					responseType: 'json',
+					responseEncoding: 'utf8',
+					headers: Object.assign(
+						params.headers ?? {},
+						{
+							'Content-Type': 'application/json',
+						},
+					),
+					maxContentLength: params.maxResponseSize ?? 2000, // bytes
+					data: params.data,
+					onUploadProgress: params.onUploadProgress, // callback -> ( nativeProgressEvent ) => {}
+					onDownloadProgress: params.onDownloadProgress, // callback -> ( nativeProgressEvent ) => {}
+					timeout: params.timeout ?? 0, // miliseconds
+				};
 
-			params.baseURL 					= this.#config.baseURL;
-			params.responseType 			= 'json';
-			params.responseEncoding 		= 'utf8';		
-			params.headers['Content-Type'] 	= 'application/json';
+				let getAccessToken = params.getAccessToken ?? this.#config.getAccessToken;
 
-			if ( params.public ) {
 
-				delete params.public;
+				if ( params.noAuth ) {
 
-				return params;
-			}
-			else {
+					resolve( axiosParams );
+				}
+				else if ( getAccessToken ) {
 
-				delete params.public;
+					getAccessToken.then( token => {
 
-				if ( this.#config.auth ) {
+						axiosParams.headers['Authorization'] = token;
 
-					return this.#config.auth.getAccessToken().then( token => {
+						resolve( axiosParams );
 
-						params.headers['Authorization'] = 'Bearer ' + token;
+					}).catch( err => {
 
-						return params;
+						reject( err );
 					});
 				}
 				else {
 
-					reject( new Error('Config param required: auth') );
+					reject( new Error('Config param required: getAccessToken') );
 				}
+
 			}
+			catch( err ) {
+
+				reject( err );
+			}
+
 		});
+
 	}
 
 
 	#request ( params ) {
 
-		return this.#prepare( params => {
+		return new Promise ( ( resolve, reject ) => {
 
-			let eventId = params.eventId;
-			delete params.eventId;
+			this.#prepare( params ).then( params => {
 
-			return axios( params ).then( response => {
+				return axios( params ).then( response => {
 
-				this.#trackEvent(
-					eventId,
-					response.data,
-				);
+					resolve( response.data );
+				});
 
-				return response.data;
-			});			
+			}).catch( err => {
+
+				if ( 
+					err.response?.data?.error?.code
+					&& err.response?.data?.error?.message
+				) 
+				{
+
+					reject( 
+						new RESTException( 
+							err.response.data.error.code, 
+							err.response.data.error.message, 
+							err.response.status,
+							{
+								cause: err,
+							}
+						)
+					);
+				}
+				else {
+
+					reject( err );
+				}
+
+			});
+
 		});
-	}
-
-
-	#trackEvent ( id, eventData = null ) {
-
-		if ( id && this.#config.trackEvent ) {
-
-			this.#config.trackEvent( id, eventData ?? {} );
-		}
 	}
 
 }
