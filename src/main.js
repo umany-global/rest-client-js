@@ -7,6 +7,8 @@ export default class RESTClientBase {
 	#config;
 
 
+	// config.baseUrl
+	// config.auth - authorization header value or callback returning Promise<value>
 	constructor ( config ) {
 
 		if ( !config.baseUrl ) {
@@ -18,11 +20,12 @@ export default class RESTClientBase {
 			throw new Error('baseUrl param must be a string');
 		}
 		else if ( 
-			config.getAccessToken
-			&& typeof config.getAccessToken !== 'function' 
+			config.auth
+			&& typeof config.auth !== 'string' 
+			&& typeof config.auth !== 'function' 
 		) 
 		{
-			throw new Error('getAccessToken param must be a valid callback and return Promise<string>');
+			throw new Error('auth param must be a string or valid callback which returns Promise<string>');
 		}
 		else {
 
@@ -127,16 +130,18 @@ export default class RESTClientBase {
 					timeout: params.timeout ?? 0, // miliseconds
 				};
 
-				let getAccessToken = params.getAccessToken ?? this.#config.getAccessToken;
+				// obtain access token from fixed param or user-defined callback
+				let auth = params.auth ?? this.#config.auth;
 
+				if ( typeof auth === 'string' ) {
 
-				if ( params.noAuth ) {
+					axiosParams.headers['Authorization'] = auth;
 
 					resolve( axiosParams );
 				}
-				else if ( getAccessToken ) {
+				else if ( typeof auth === 'function' ) {
 
-					getAccessToken.then( token => {
+					auth().then( token => {
 
 						axiosParams.headers['Authorization'] = token;
 
@@ -149,7 +154,7 @@ export default class RESTClientBase {
 				}
 				else {
 
-					reject( new Error('Config param required: getAccessToken') );
+					resolve( axiosParams );
 				}
 
 			}
