@@ -123,7 +123,8 @@ export default class RESTClientBase {
 							'Content-Type': 'application/json',
 						},
 					),
-					maxContentLength: params.maxResponseSize ?? 2000, // bytes
+					maxContentLength: params.maxResponseSize ?? 2000000, // bytes
+					maxBodyLength: params.maxRequestSize ?? 2000000, // bytes
 					data: params.data,
 					onUploadProgress: params.onUploadProgress, // callback -> ( nativeProgressEvent ) => {}
 					onDownloadProgress: params.onDownloadProgress, // callback -> ( nativeProgressEvent ) => {}
