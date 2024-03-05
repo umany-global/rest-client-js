@@ -184,13 +184,13 @@ export default class RESTClientBase {
 
 				if ( 
 					err.response?.data?.error?.code
-					&& err.response?.data?.error?.message
+					|| err.response?.data?.error?.message
 				) 
 				{
 
 					reject( 
 						new RESTException( 
-							err.response.data.error.code, 
+							err.response.data.error.code,
 							err.response.data.error.message, 
 							err.response.status,
 							{
@@ -209,4 +209,8 @@ export default class RESTClientBase {
 		});
 	}
 
+}
+
+export {
+	RESTException,
 }
