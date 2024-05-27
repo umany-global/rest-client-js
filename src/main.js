@@ -121,6 +121,7 @@ export default class RESTClientBase {
 						params.headers ?? {},
 						{
 							'Content-Type': 'application/json',
+							...( this.config.baseHeaders ?? {} ),
 						},
 					),
 					maxContentLength: params.maxResponseSize ?? 2000000, // bytes
