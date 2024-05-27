@@ -4,7 +4,7 @@ import 	RESTException 		from './Exceptions/RESTException.js';
 
 export default class RESTClientBase {
 
-	#config;
+	config;
 
 
 	// config.baseUrl
@@ -39,7 +39,7 @@ export default class RESTClientBase {
 			}
 		}
 
-		this.#config = config;
+		this.config = config;
 	}
 
 
@@ -111,7 +111,7 @@ export default class RESTClientBase {
 			try {
 
 				let axiosParams = {
-					baseURL: this.#config.baseUrl,
+					baseURL: this.config.baseUrl,
 					method: params.method,
 					url: params.path,
 					params: params.query,
@@ -132,7 +132,7 @@ export default class RESTClientBase {
 				};
 
 				// obtain access token from fixed param or user-defined callback
-				let auth = params.auth ?? this.#config.auth;
+				let auth = params.auth ?? this.config.auth;
 
 				if ( typeof auth === 'string' ) {
 
@@ -207,6 +207,12 @@ export default class RESTClientBase {
 			});
 
 		});
+	}
+
+
+	set config ( value ) {
+
+		throw new Error('config must be set as constructor first parameter');
 	}
 
 }
