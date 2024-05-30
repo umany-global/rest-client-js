@@ -2,7 +2,7 @@ import 	axios				from 'axios';
 import 	RESTException 		from './Exceptions/RESTException.js';
 
 
-export default class RESTClientBase {
+export default class RESTClient {
 
 	config;
 
@@ -120,15 +120,15 @@ export default class RESTClientBase {
 					headers: Object.assign(
 						params.headers ?? {},
 						{
-							'Content-Type': 'application/json',
+							'Content-Type': 'application/json; charset=utf-8',
 							...( this.config.baseHeaders ?? {} ),
 						},
 					),
 					maxContentLength: params.maxResponseSize ?? 2000000, // bytes
 					maxBodyLength: params.maxRequestSize ?? 2000000, // bytes
 					data: params.data,
-					onUploadProgress: params.onUploadProgress, // callback -> ( nativeProgressEvent ) => {}
-					onDownloadProgress: params.onDownloadProgress, // callback -> ( nativeProgressEvent ) => {}
+					onUploadProgress: params.onUploadProgress, // callback -> ( axiosProgressEvent ) => {}
+					onDownloadProgress: params.onDownloadProgress, // callback -> ( axiosProgressEvent ) => {}
 					timeout: params.timeout ?? 0, // miliseconds
 				};
 
