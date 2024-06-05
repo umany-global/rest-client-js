@@ -7,6 +7,14 @@
   resolved "https://npm.pkg.github.com/download/@umany-global/base-exceptions-js/1.3.3/de507c2fd6e89060f604219a9ba76f8f2643c038#de507c2fd6e89060f604219a9ba76f8f2643c038"
   integrity sha512-8kvAV3IW2QWqxU1+Myj14PDCVuuPdOGljlaNHDj9+i15JC1xnFe53xJaK4h+Cct/V4sD/0fZFB7Tc9PpS7ZUUQ==
 
+"@umany-global/http-client-axios@^1.0.0":
+  version "1.0.0"
+  resolved "https://npm.pkg.github.com/download/@umany-global/http-client-axios/1.0.0/aa7f60e5736f6cdddcdfed58d86bdbf02d225558#aa7f60e5736f6cdddcdfed58d86bdbf02d225558"
+  integrity sha512-bMMQAwhHFD0+hvVlTCvWnFEJWZg3/ctrqunQ7ZutQBni1Az3sOuFxw51ctkYT1EKP6kjQ/onCuJkaTipzmpgBQ==
+  dependencies:
+    "@umany-global/base-exceptions-js" "^1.3.3"
+    axios "^1.7.2"
+
 asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
