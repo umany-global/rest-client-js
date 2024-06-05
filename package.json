@@ -1,6 +1,6 @@
 {
   "name": "@umany-global/rest-client-js",
-  "version": "1.3.8",
+  "version": "1.3.9",
   "description": "",
   "type": "module",
   "main": "./src/main.js",
@@ -18,7 +18,6 @@
   },
   "homepage": "https://github.com/umany-global/rest-client-js#readme",
   "dependencies": {
-    "@umany-global/base-exceptions-js": "^1.3.3",
-    "axios": "^1.7.2"
+    "@umany-global/http-client-axios": "^1.0.0"
   }
 }
