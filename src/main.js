@@ -3,6 +3,23 @@ import 	HTTPClient from '@umany-global/http-client-axios';
 
 export default class RESTClient extends HTTPClient {
 
+
+	constructor ( config ) {
+
+		if ( !config.baseUrl ) {
+
+			throw new Error( 'Param required: baseUrl' );
+		}
+		else if ( typeof config.baseUrl !== 'string' ) {
+
+			throw new Error( 'baseUrl param must be a string' );
+		}
+
+		super( config );
+
+	}
+
+	
 	post ( params ) {
 
 		return super.post({
