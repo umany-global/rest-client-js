@@ -7,10 +7,10 @@
   resolved "https://npm.pkg.github.com/download/@umany-global/base-exceptions-js/1.3.3/de507c2fd6e89060f604219a9ba76f8f2643c038#de507c2fd6e89060f604219a9ba76f8f2643c038"
   integrity sha512-8kvAV3IW2QWqxU1+Myj14PDCVuuPdOGljlaNHDj9+i15JC1xnFe53xJaK4h+Cct/V4sD/0fZFB7Tc9PpS7ZUUQ==
 
-"@umany-global/http-client-axios@^1.0.5":
-  version "1.0.5"
-  resolved "https://npm.pkg.github.com/download/@umany-global/http-client-axios/1.0.5/c8cd9a3e0577f8fc5fb9fd9d9255dbef218bcef0#c8cd9a3e0577f8fc5fb9fd9d9255dbef218bcef0"
-  integrity sha512-ptmPIIRFu1oMCFXkKcc9A2VUQqghcKBW1PKwZicA0z269oCOYgCFoepbX+0G8vnZBe4rkMnzZ4P6Z/UMOrN3sw==
+"@umany-global/http-client-axios@^1.0.6":
+  version "1.0.6"
+  resolved "https://npm.pkg.github.com/download/@umany-global/http-client-axios/1.0.6/3e4b0226a2cbabdf8f4227a3c18a84def200c534#3e4b0226a2cbabdf8f4227a3c18a84def200c534"
+  integrity sha512-jvW+HhjAWkQ3WuRNI60uac8q83epgcZxzc3TDT7rK4SAvN5Qlb6NLe8ECf6PP57tAtQUNHN0euaylKJ2ZvfEkA==
   dependencies:
     "@umany-global/base-exceptions-js" "^1.3.3"
     axios "^1.7.2"
